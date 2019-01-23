@@ -1,5 +1,6 @@
 (defpackage cl-rpc-udp
   (:use :cl)
+  (:nicknames #:rpcudp)
   (:export #:make-server
            #:expose
            #:start
@@ -11,7 +12,10 @@
            #:disconnect
 
            #:*remote-host*
-           #:*remote-port*))
+           #:*remote-port*
+
+           #:transport-udp-server
+           #:transport-udp-client))
 (in-package :cl-rpc-udp)
 
 ;;; Utils
@@ -168,7 +172,7 @@ This is supposed to force a check of ACCEPTOR-SHUTDOWN-P."
                        (apply (gethash rpc-name (server-router server))
                               args)))
       (error (e)
-        (log:info "server method process error:e , return nil" e)))
+        (log:info "server method process error, return nil, error:" e)))
 
     (setf (gethash "id" msg) id
           (gethash "result" msg) result)
