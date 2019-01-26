@@ -27,7 +27,8 @@
 
 (defparameter *client* (make-client))
 
-(connect *client* :host "127.0.0.1" :port 30979)
+(connect *client* :host "127.0.0.1" :port 30979
+                  :local-host "127.0.0.1" :local-port 40979)
 
 (unwind-protect
      (progn

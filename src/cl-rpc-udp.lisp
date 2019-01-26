@@ -93,7 +93,7 @@ connections.")
   (usocket:socket-close (server-socket server))
   (setf (server-socket server) nil)
   (log:info "server stop")
-  )
+  t)
 
 (defun start-background-worker (server)
   (log:info "Server starting background worker")
@@ -143,7 +143,7 @@ This is supposed to force a check of ACCEPTOR-SHUTDOWN-P."
 (defun wait-for-client-data (socket)
   (multiple-value-bind (return-buffer return-length remote-host remote-port)
       (usocket:socket-receive socket nil data-max-length)
-    (log:info "server have received client data")
+    (log:info "server received data from client host: ~a,port: ~a" remote-host remote-port)
     (handler-case
         (let* ((msg (decode-msg (subseq return-buffer 0 return-length)))
                (id (gethash "id" msg))
@@ -179,7 +179,8 @@ This is supposed to force a check of ACCEPTOR-SHUTDOWN-P."
     (setf buffer (encode-msg msg))
     (usocket:socket-send socket buffer (length buffer)
                          :host remote-host
-                         :port remote-port)))
+                         :port remote-port) ;; which port it use?
+    ))
 
 
 ;;; Client
@@ -208,7 +209,7 @@ This is supposed to force a check of ACCEPTOR-SHUTDOWN-P."
                      :initform nil)))
 
 
-(defgeneric connect (client &key host port)
+(defgeneric connect (client &key host port local-host local-port)
   (:documentation ""))
 
 (defgeneric call (client rpc-name args &key timeout)
@@ -222,11 +223,13 @@ This is supposed to force a check of ACCEPTOR-SHUTDOWN-P."
   (make-instance 'transport-udp-client))
 
 
-(defmethod connect ((client transport-udp-client) &key host port)
+(defmethod connect ((client transport-udp-client) &key host port local-host local-port)
   (log:info "client connecting to host:~a  port: ~a" host port)
 
   (let ((socket (usocket:socket-connect host port
-                                        :protocol :datagram)))
+                                        :protocol :datagram
+                                        :local-host local-host
+                                        :local-port local-port)))
     (setf (client-socket client) socket
           (client-host client) host
           (client-port client) port
@@ -264,7 +267,8 @@ This is supposed to force a check of ACCEPTOR-SHUTDOWN-P."
   (bt:join-thread (client-background-thread client))
 
   (setf (client-socket client) nil)
-  (log:info "client stop"))
+  (log:info "client stop")
+  t)
 
 
 ;; call helper methods
@@ -322,9 +326,9 @@ This is supposed to force a check of ACCEPTOR-SHUTDOWN-P."
 ;; server send msg format {"id":"", "result":""}
 (defun wait-for-server-data (socket)
   (handler-case
-      (multiple-value-bind (return-buffer return-length)
+      (multiple-value-bind (return-buffer return-length remote-host remote-port)
           (usocket:socket-receive socket nil data-max-length)
-        (log:info "client have received server data")
+        (log:info "client received data from server host: ~a, port: ~a" remote-host remote-port)
         (handler-case
             (let* ((msg (decode-msg (subseq return-buffer 0 return-length)))
                    (id (gethash "id" msg))
