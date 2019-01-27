@@ -16,8 +16,10 @@ This is a raw and flawed rpc over udp framework now.
 
 ## TODO s
 
--   [ ] Refactor expose name and inner function name
--   [ ] Reformat logging message
+-   [ ] refactor encode and decode part
+-   [ ] stop thread error case handle, add timeout
+-   [ ] add checker when \`call\` called
+-   [ ] consider make it async?
 
 
 ## Author
