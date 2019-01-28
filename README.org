@@ -1,8 +1,6 @@
 #+OPTIONS: toc:nil
 
 * cl-rpc-udp 
-
-** Usage
 cl-rpc-udp is a rpc over udp tool.
 
 ** Installation
@@ -10,7 +8,53 @@ cl-rpc-udp is a rpc over udp tool.
 2. Run ~(ql:quickload :cl-rpc-udp)~ in lisp repl to load it
 3. Run test with ~(asdf:test-system :cl-rpc-udp)~
 
-** TODOs
+** Usage
+
+Server part
+#+BEGIN_SRC lisp
+;; Make instance of server
+(defparameter *server* (make-instance 'rpc-node))
+
+;; Expose methods as service
+(expose *server* "sum" (lambda (a b) (apply #'+ (list a b))))
+(expose *server* "mul" (lambda (args) (reduce #'* args)))
+(expose *server* "sub" (lambda (&rest args) (reduce #'- args)))
+(expose *server* "test-func" (lambda (&rest args)
+                               (reduce #'- args)))
+(expose *server* "get-address" (lambda (&rest args)
+                                 (declare (ignore args))
+                                 (format nil "~a:~a" *remote-host* *remote-port*)))
+
+;; Start server
+(start *server* "127.0.0.1" 8000)
+
+;; Stop when no need
+(stop *server*)
+
+#+END_SRC
+
+
+Client part
+#+BEGIN_SRC lisp
+;; Make instance of client
+(defparameter *client* (make-instance 'rpc-node))
+
+;; Start client
+(start *client* "127.0.0.1"  9000)
+
+;; Call methods of remote service
+(call *client* "sum" '(10 20) "127.0.0.1" 8000)
+(call *client* "mul" '((10 20 30)) "127.0.0.1" 8000)
+(call *client* "sub" '(10 20 30) "127.0.0.1" 8000 :timeout 10)
+(call *client* "get-address" '() "127.0.0.1" 8000)
+
+;; stop client when no need
+(stop *client*)
+#+END_SRC
+
+** TODO-List
+- [X] refactor server/client to make it symmetry
+- [X] add test case
 - [ ] refactor encode and decode part
 - [ ] stop thread error case handle, add timeout
 - [ ] add checker when `call` called
