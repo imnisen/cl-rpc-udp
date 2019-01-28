@@ -1,13 +1,14 @@
 #+OPTIONS: toc:nil
 
-* Cl-Rpc-Udp 
+* cl-rpc-udp 
 
 ** Usage
-This is a raw and flawed rpc over udp framework now.
+cl-rpc-udp is a rpc over udp tool.
 
 ** Installation
 1. Clone to somewhere quicklisp can find, such as ~~/quicklisp/local-projects~
-2. Run (ql:quickload :cl-rpc-udp) in lisp repl to load it
+2. Run ~(ql:quickload :cl-rpc-udp)~ in lisp repl to load it
+3. Run test with ~(asdf:test-system :cl-rpc-udp)~
 
 ** TODOs
 - [ ] refactor encode and decode part

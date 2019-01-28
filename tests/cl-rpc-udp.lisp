@@ -8,10 +8,8 @@
 
 (plan nil)
 
-
-
-
-(defparameter *server* (make-server))
+;; server
+(defparameter *server* (make-instance 'rpc-node))
 
 ;; expose first, then start server
 (expose *server* "sum" (lambda (a b) (apply #'+ (list a b))))
@@ -20,23 +18,25 @@
 (expose *server* "test-func" (lambda (&rest args)
                                (reduce #'- args)))
 (expose *server* "get-address" (lambda (&rest args)
+                                 (declare (ignore args))
                                  (format nil "~a:~a" *remote-host* *remote-port*)))
 
-(start *server* :host "127.0.0.1" :port 30979)
+(start *server* "127.0.0.1" 8000)
 
 
-(defparameter *client* (make-client))
+;; client
+(defparameter *client* (make-instance 'rpc-node))
 
-(connect *client* :host "127.0.0.1" :port 30979
-                  :local-host "127.0.0.1" :local-port 40979)
+(start *client* "127.0.0.1"  9000)
+
 
 (unwind-protect
      (progn
-       (is (call *client* "sum" '(10 20)) 30)
-       (is (call *client* "mul" '((10 20 30))) 6000)
-       (is (call *client* "sub" '(10 20 30) :timeout 10) -40)
-       (ok (typep (call *client* "get-address" '()) 'string)))
-  (disconnect *client*)
+       (is (call *client* "sum" '(10 20) "127.0.0.1" 8000) 30 )
+       (is (call *client* "mul" '((10 20 30)) "127.0.0.1" 8000) 6000)
+       (is (call *client* "sub" '(10 20 30) "127.0.0.1" 8000 :timeout 10) -40)
+       (ok (typep (call *client* "get-address" '() "127.0.0.1" 8000) 'string)))
+  (stop *client*)
   (stop *server*))
 
 (finalize)

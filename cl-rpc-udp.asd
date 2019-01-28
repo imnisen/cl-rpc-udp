@@ -18,7 +18,9 @@
                :flexi-streams)
   :components ((:module "src"
                 :components
-                ((:file "cl-rpc-udp"))))
+                ((:file "packages")
+                 (:file "utils")
+                 (:file "cl-rpc-udp"))))
   :description ""
   :long-description
   #.(read-file-string
