@@ -9,4 +9,6 @@
            #:stop
            #:call
            #:*remote-host*
-           #:*remote-port*))
+           #:*remote-port*
+           #:node-host
+           #:node-port))

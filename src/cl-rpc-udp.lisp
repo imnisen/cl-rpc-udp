@@ -30,7 +30,11 @@
 
 
 (defclass rpc-node ()
-  ((socket :accessor node-socket
+  ((host :accessor node-host
+         :initform nil)
+   (port :accessor node-port
+         :initform nil)
+   (socket :accessor node-socket
            :initform nil)
    (shutdown-lock :accessor node-shutdown-lock
                   :initform (bt:make-lock "node-shutdown-lock"))
@@ -52,7 +56,9 @@
 
 (defgeneric start (node host port)
   (:method ((node rpc-node) host port)
-    (setf (node-socket node) (usocket:socket-connect nil nil
+    (setf (node-host node) host
+          (node-port node) port
+          (node-socket node) (usocket:socket-connect nil nil
                                                      :protocol :datagram
                                                      :local-host host
                                                      :local-port port)
@@ -172,7 +178,7 @@
                    (if (nth-value 1 (gethash rpc-name methods))
                        (progn
                          (setf result (apply (gethash rpc-name methods) args))
-                         (log:info "node worker handle rpc method success, result is" result))
+                         (log:info "node worker handle rpc method success, result is:~a" result))
                        (log:info "node worker handle rpc method fail, no such method: ~a, result nil" rpc-name))
                    result)
                (error (e)
